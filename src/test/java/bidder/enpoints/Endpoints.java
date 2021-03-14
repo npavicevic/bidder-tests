@@ -3,6 +3,9 @@ package bidder.enpoints;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
 
+/**
+ * This is the class where the endpoints for tests are defined.
+ */
 public class Endpoints {
     private static final String baseUri = "http://localhost";
     /**
