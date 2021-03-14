@@ -130,6 +130,7 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "200x500", 200);
 
+        Assertions.assertTrue(response.has("error"));
         Assertions.assertEquals("Not enough budget.", response.getString("error"));
     }
 
@@ -138,6 +139,7 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "350x350", 200);
 
+        Assertions.assertTrue(response.has("error"));
         Assertions.assertEquals("Not enough budget.", response.getString("error"));
     }
 
@@ -158,15 +160,16 @@ public class getBidTests {
 
         Assertions.assertEquals(sample_bid, response.getString("bidId"));
         assertThat(response.getInt("bannerId"), either(is(6)).or(is(7)));
-        Assertions.assertEquals(10, response.getInt("price"));
+        Assertions.assertEquals(5, response.getInt("price"));
 
     }
 
     @Test
     public void getBidReflectedXSS()
     {
-        JSONObject response = getBid(sample_ssp, "<script>alert(1)</script>", "90x728", 200);
+        String maliciousString = "<script>alert(1)</script>";
+        JSONObject response = getBid(sample_ssp, maliciousString, "90x728", 200);
 
-        Assertions.assertFalse(response.getString("bidId").contains("<script>alert(1)</script>"));
+        Assertions.assertFalse(response.getString("bidId").contains(maliciousString));
     }
 }
