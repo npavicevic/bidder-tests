@@ -1,0 +1,54 @@
+{
+    "banners": [
+        {
+            "id": 1,
+            "size": {
+                "height": 728,
+                "width": 90
+            },
+            "budget": 1000,
+            "bidPrice": 10,
+            "active": true
+        },
+        {
+            "id": 2,
+            "size": {
+                "height": 160,
+                "width": 600
+            },
+            "budget": 5000,
+            "bidPrice": 15,
+            "active": true
+        },
+        {
+            "id": 3,
+            "size": {
+                "height": 300,
+                "width": 250
+            },
+            "budget": 3000,
+            "bidPrice": 25,
+            "active": false
+        },
+        {
+            "id": 4,
+            "size": {
+                "height": 500,
+                "width": 200
+            },
+            "budget": 30,
+            "bidPrice": 35,
+            "active": true
+        },
+        {
+            "id": 5,
+            "size": {
+                "height": 160,
+                "width": 600
+            },
+            "budget": 5000,
+            "bidPrice": 20,
+            "active": true
+        }
+    ]
+}
