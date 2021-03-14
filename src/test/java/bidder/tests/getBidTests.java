@@ -9,7 +9,8 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class getBidTests {
 
@@ -119,7 +120,7 @@ public class getBidTests {
                 getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "200x500")
                         .statusCode(200).extract().response();
         JSONObject jsonObject = new JSONObject(response.getBody().asString());
-        Assertions.assertEquals("Budget must be over the price.", jsonObject.getString("error"));
+        Assertions.assertEquals("Not enough budget.", jsonObject.getString("error"));
     }
 
     @Test
@@ -133,5 +134,19 @@ public class getBidTests {
         Assertions.assertEquals("db131b41-a0d6-42ee-8e2e-514a7459530d", jsonObject.getString("bidId"));
         Assertions.assertEquals(5, jsonObject.getInt("bannerId"));
         Assertions.assertEquals(20, jsonObject.getInt("price"));
+    }
+
+    @Test
+    public void getBidSamePrice()
+    {
+        Response response =
+                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "100x100")
+                        .statusCode(200)
+                        .extract().response();
+        JSONObject jsonObject = new JSONObject(response.getBody().asString());
+        Assertions.assertEquals("db131b41-a0d6-42ee-8e2e-514a7459530d", jsonObject.getString("bidId"));
+        assertThat(jsonObject.getInt("bannerId"), either(is(6)).or(is(7)));
+        Assertions.assertEquals(10, jsonObject.getInt("price"));
+
     }
 }
