@@ -5,8 +5,8 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -53,9 +53,9 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "90x728", 200);
 
-        Assertions.assertEquals(sample_bid, response.getString("bidId"));
-        Assertions.assertEquals(1, response.getInt("bannerId"));
-        Assertions.assertEquals(10, response.getInt("price"));
+        Assert.assertEquals(sample_bid, response.getString("bidId"));
+        Assert.assertEquals(1, response.getInt("bannerId"));
+        Assert.assertEquals(10, response.getInt("price"));
     }
 
     @Test
@@ -63,7 +63,7 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "250x300", 200);
 
-        Assertions.assertTrue(response.isEmpty());
+        Assert.assertTrue(response.isEmpty());
     }
 
     @Test
@@ -71,7 +71,7 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "1x1", 200);
 
-        Assertions.assertTrue(response.isEmpty());
+        Assert.assertTrue(response.isEmpty());
     }
 
     @Test
@@ -130,8 +130,8 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "200x500", 200);
 
-        Assertions.assertTrue(response.has("error"));
-        Assertions.assertEquals("Not enough budget.", response.getString("error"));
+        Assert.assertTrue(response.has("error"));
+        Assert.assertEquals("Not enough budget.", response.getString("error"));
     }
 
     @Test
@@ -139,8 +139,8 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "350x350", 200);
 
-        Assertions.assertTrue(response.has("error"));
-        Assertions.assertEquals("Not enough budget.", response.getString("error"));
+        Assert.assertTrue(response.has("error"));
+        Assert.assertEquals("Not enough budget.", response.getString("error"));
     }
 
     @Test
@@ -148,9 +148,9 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "600x160", 200);
 
-        Assertions.assertEquals(sample_bid, response.getString("bidId"));
-        Assertions.assertEquals(5, response.getInt("bannerId"));
-        Assertions.assertEquals(20, response.getInt("price"));
+        Assert.assertEquals(sample_bid, response.getString("bidId"));
+        Assert.assertEquals(5, response.getInt("bannerId"));
+        Assert.assertEquals(20, response.getInt("price"));
     }
 
     @Test
@@ -158,9 +158,9 @@ public class getBidTests {
     {
         JSONObject response = getBid(sample_ssp, sample_bid, "100x100", 200);
 
-        Assertions.assertEquals(sample_bid, response.getString("bidId"));
+        Assert.assertEquals(sample_bid, response.getString("bidId"));
         assertThat(response.getInt("bannerId"), either(is(6)).or(is(7)));
-        Assertions.assertEquals(5, response.getInt("price"));
+        Assert.assertEquals(5, response.getInt("price"));
 
     }
 
@@ -170,6 +170,6 @@ public class getBidTests {
         String maliciousString = "<script>alert(1)</script>";
         JSONObject response = getBid(sample_ssp, maliciousString, "90x728", 200);
 
-        Assertions.assertFalse(response.getString("bidId").contains(maliciousString));
+        Assert.assertFalse(response.getString("bidId").contains(sample_ssp));
     }
 }
