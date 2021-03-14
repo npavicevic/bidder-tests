@@ -159,4 +159,15 @@ public class getBidTests {
         Assertions.assertEquals(10, jsonObject.getInt("price"));
 
     }
+
+    @Test
+    public void getBidReflectedXSS()
+    {
+        Response response =
+                getBid("1", "<script>alert(1)</script>", "90x728")
+                        .statusCode(200)
+                        .extract().response();
+        JSONObject jsonObject = new JSONObject(response.getBody().asString());
+        Assertions.assertFalse(jsonObject.getString("bidId").contains("<script>alert(1)</script>"));
+    }
 }
