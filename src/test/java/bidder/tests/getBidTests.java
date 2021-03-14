@@ -3,7 +3,6 @@ package bidder.tests;
 import bidder.enpoints.Endpoints;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
@@ -14,10 +13,22 @@ import static org.hamcrest.Matchers.*;
 
 public class getBidTests {
 
-    public static ValidatableResponse getBid(String ssp, String bid, String adsize)
+    private final String sample_bid = "db131b41-a0d6-42ee-8e2e-514a7459530d";
+    private final String sample_ssp = "1";
+
+    /**
+     * Sends a request to server with specified query params and checks the specified response status code.
+     * If the response code is as expected, a JSONObject is returned for further checks of the response.
+     * @param ssp SSP (Supply Side Platform), which sends a server a request with information about the specific ad.
+     * @param bid The ID of the bid.
+     * @param adsize The size of the ad in widthxheight in pixels
+     * @param statusCode The expected status code of the response.
+     * @return JSONObject
+     */
+    public static JSONObject getBid(String ssp, String bid, String adsize, int statusCode)
     {
         RequestSpecification reqSpec = Endpoints.bidder();
-        return RestAssured
+        Response response = RestAssured
                 .given()
                     .log().all()
                     .spec(reqSpec)
@@ -26,40 +37,41 @@ public class getBidTests {
                     .queryParam("adsize", adsize)
                 .when()
                     .get()
-                .then();
+                .then()
+                    .statusCode(statusCode)
+                    .extract().response();
+
+        // TODO: This should be removed when the response is returning application/json Content Type instead of text/plain, and some minor changes to tests need to be done.
+        if(response.getBody().asString().equals(""))
+            return new JSONObject("{}");
+        else
+            return new JSONObject(response.getBody().asString());
     }
 
     @Test
     public void getBidHappyPath()
     {
-        Response response =
-                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "90x728")
-                    .statusCode(200)
-                    .extract().response();
-        JSONObject jsonObject = new JSONObject(response.getBody().asString());
-        Assertions.assertEquals("db131b41-a0d6-42ee-8e2e-514a7459530d", jsonObject.getString("bidId"));
-        Assertions.assertEquals(1, jsonObject.getInt("bannerId"));
-        Assertions.assertEquals(10, jsonObject.getInt("price"));
+        JSONObject response = getBid(sample_ssp, sample_bid, "90x728", 200);
+
+        Assertions.assertEquals(sample_bid, response.getString("bidId"));
+        Assertions.assertEquals(1, response.getInt("bannerId"));
+        Assertions.assertEquals(10, response.getInt("price"));
     }
 
     @Test
     public void getBidInactive()
     {
-        Response response =
-                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "250x300")
-                    .statusCode(200)
-                    .extract().response();
-        Assertions.assertEquals("", response.getBody().asString());
+        JSONObject response = getBid(sample_ssp, sample_bid, "250x300", 200);
+
+        Assertions.assertTrue(response.isEmpty());
     }
 
     @Test
     public void getBidNoBanner()
     {
-        Response response =
-                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "1x1")
-                    .statusCode(200)
-                    .extract().response();
-        Assertions.assertEquals("", response.getBody().asString());
+        JSONObject response = getBid(sample_ssp, sample_bid, "1x1", 200);
+
+        Assertions.assertTrue(response.isEmpty());
     }
 
     @Test
@@ -70,7 +82,7 @@ public class getBidTests {
                 .given()
                     .log().all()
                     .spec(reqSpec)
-                        .queryParam("bid", "db131b41-a0d6-42ee-8e2e-514a7459530d")
+                        .queryParam("bid", sample_bid)
                         .queryParam("adsize", "600x160")
                 .when()
                     .get()
@@ -87,7 +99,7 @@ public class getBidTests {
                 .given()
                     .log().all()
                     .spec(reqSpec)
-                        .queryParam("ssp", "1")
+                        .queryParam("ssp", sample_ssp)
                         .queryParam("adsize", "600x160")
                 .when()
                     .get()
@@ -104,8 +116,8 @@ public class getBidTests {
                 .given()
                     .log().all()
                     .spec(reqSpec)
-                        .queryParam("ssp", "1")
-                        .queryParam("bid", "db131b41-a0d6-42ee-8e2e-514a7459530d")
+                        .queryParam("ssp", sample_ssp)
+                        .queryParam("bid", sample_bid)
                 .when()
                     .get()
                 .then()
@@ -116,58 +128,45 @@ public class getBidTests {
     @Test
     public void getBidOverBudget()
     {
-        Response response =
-                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "200x500")
-                        .statusCode(200).extract().response();
-        JSONObject jsonObject = new JSONObject(response.getBody().asString());
-        Assertions.assertEquals("Not enough budget.", jsonObject.getString("error"));
+        JSONObject response = getBid(sample_ssp, sample_bid, "200x500", 200);
+
+        Assertions.assertEquals("Not enough budget.", response.getString("error"));
     }
 
     @Test
     public void getBidNegativeBudget()
     {
-        Response response =
-                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "350x350")
-                        .statusCode(200).extract().response();
-        JSONObject jsonObject = new JSONObject(response.getBody().asString());
-        Assertions.assertEquals("Not enough budget.", jsonObject.getString("error"));
+        JSONObject response = getBid(sample_ssp, sample_bid, "350x350", 200);
+
+        Assertions.assertEquals("Not enough budget.", response.getString("error"));
     }
 
     @Test
     public void getBidHigherPrice()
     {
-        Response response =
-                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "600x160")
-                        .statusCode(200)
-                        .extract().response();
-        JSONObject jsonObject = new JSONObject(response.getBody().asString());
-        Assertions.assertEquals("db131b41-a0d6-42ee-8e2e-514a7459530d", jsonObject.getString("bidId"));
-        Assertions.assertEquals(5, jsonObject.getInt("bannerId"));
-        Assertions.assertEquals(20, jsonObject.getInt("price"));
+        JSONObject response = getBid(sample_ssp, sample_bid, "600x160", 200);
+
+        Assertions.assertEquals(sample_bid, response.getString("bidId"));
+        Assertions.assertEquals(5, response.getInt("bannerId"));
+        Assertions.assertEquals(20, response.getInt("price"));
     }
 
     @Test
     public void getBidSamePrice()
     {
-        Response response =
-                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "100x100")
-                        .statusCode(200)
-                        .extract().response();
-        JSONObject jsonObject = new JSONObject(response.getBody().asString());
-        Assertions.assertEquals("db131b41-a0d6-42ee-8e2e-514a7459530d", jsonObject.getString("bidId"));
-        assertThat(jsonObject.getInt("bannerId"), either(is(6)).or(is(7)));
-        Assertions.assertEquals(10, jsonObject.getInt("price"));
+        JSONObject response = getBid(sample_ssp, sample_bid, "100x100", 200);
+
+        Assertions.assertEquals(sample_bid, response.getString("bidId"));
+        assertThat(response.getInt("bannerId"), either(is(6)).or(is(7)));
+        Assertions.assertEquals(10, response.getInt("price"));
 
     }
 
     @Test
     public void getBidReflectedXSS()
     {
-        Response response =
-                getBid("1", "<script>alert(1)</script>", "90x728")
-                        .statusCode(200)
-                        .extract().response();
-        JSONObject jsonObject = new JSONObject(response.getBody().asString());
-        Assertions.assertFalse(jsonObject.getString("bidId").contains("<script>alert(1)</script>"));
+        JSONObject response = getBid(sample_ssp, "<script>alert(1)</script>", "90x728", 200);
+
+        Assertions.assertFalse(response.getString("bidId").contains("<script>alert(1)</script>"));
     }
 }
