@@ -124,6 +124,16 @@ public class getBidTests {
     }
 
     @Test
+    public void getBidNegativeBudget()
+    {
+        Response response =
+                getBid("1", "db131b41-a0d6-42ee-8e2e-514a7459530d", "350x350")
+                        .statusCode(200).extract().response();
+        JSONObject jsonObject = new JSONObject(response.getBody().asString());
+        Assertions.assertEquals("Not enough budget.", jsonObject.getString("error"));
+    }
+
+    @Test
     public void getBidHigherPrice()
     {
         Response response =
